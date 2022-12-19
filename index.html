@@ -1,0 +1,257 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Document</title>
+  </head>
+  <body>
+    <p>
+      Lorem ipsum dolor sit amet, consectetur adipisicing elit. Sapiente
+      accusamus beatae dolorum numquam inventore laudantium natus deserunt
+      officiis dignissimos porro? Labore praesentium reprehenderit, placeat
+      velit eaque eos at dolores? Asperiores?
+    </p>
+    <p>
+      Lorem ipsum dolor sit amet, consectetur adipisicing elit. Sapiente
+      accusamus beatae dolorum numquam inventore laudantium natus deserunt
+      officiis dignissimos porro? Labore praesentium reprehenderit, placeat
+      velit eaque eos at dolores? Asperiores?
+    </p>
+    <p>
+      Lorem ipsum dolor sit amet, consectetur adipisicing elit. Sapiente
+      accusamus beatae dolorum numquam inventore laudantium natus deserunt
+      officiis dignissimos porro? Labore praesentium reprehenderit, placeat
+      velit eaque eos at dolores? Asperiores?
+    </p>
+    <p>
+      Lorem ipsum dolor sit amet, consectetur adipisicing elit. Sapiente
+      accusamus beatae dolorum numquam inventore laudantium natus deserunt
+      officiis dignissimos porro? Labore praesentium reprehenderit, placeat
+      velit eaque eos at dolores? Asperiores?
+    </p>
+    <p>
+      Lorem ipsum dolor sit amet, consectetur adipisicing elit. Sapiente
+      accusamus beatae dolorum numquam inventore laudantium natus deserunt
+      officiis dignissimos porro? Labore praesentium reprehenderit, placeat
+      velit eaque eos at dolores? Asperiores?
+    </p>
+    <p>
+      Lorem ipsum dolor sit amet, consectetur adipisicing elit. Sapiente
+      accusamus beatae dolorum numquam inventore laudantium natus deserunt
+      officiis dignissimos porro? Labore praesentium reprehenderit, placeat
+      velit eaque eos at dolores? Asperiores?
+    </p>
+    <script>
+      var enable_site_search = 1; // 0 = Don't enable; 1 = Enable site search along with page search
+      var find_window_fixed = 0; // 0 = User can move window with mouse; 1 = Window is fixed at top of screen // Version 5.4f
+      var find_window_background = "white"; // the color of the pop-up window
+      var find_window_border = "blue"; // the border color of pop-up window
+      var find_text_color = "black"; // the color of the text in window
+      var find_title_color = "white"; // color of window title text
+      var find_window_width = 255; // width of window // Version 5.4h - From 245 to 255
+      //var find_window_height = 85; // height of window - Version 5.3f - No Longer Using
+      var find_root_node = null; // Leave as null to search entire doc or put id of div to search (ex: 'content'). Ver 5.0a - 7/18/2014
+      var find_start_at_scroll = 1; // 1 = Always highlight first find at current scroll position // Version 5.4i
+      /* Do not edit the variables below this line */
+
+      // Simple drag object to hold all the variables for dragging
+      var drag = {
+        mousex: 0,
+        mousey: 0,
+        tempx: "",
+        tempy: "",
+        isdrag: false,
+        drag_obj: null,
+        drag_obj_x: 0,
+        drag_obj_y: 0,
+      };
+
+      var find_timer = 0; // used for timer to move window in IE when scrolling
+
+      // Create highlights array to hold each new span element
+      var highlights = [];
+
+      // Which find are we currently highlighting
+      var find_pointer = -1;
+
+      var find_text = ""; // Global variable of searched for text
+
+      var found_highlight_rule = 0; // whether there is a highlight css rule
+      var found_selected_rule = 0; // whether there is a selected css rule
+
+      //if (!find_window_fixed) { // Version 5.4f // Version 5.4i - Removed
+      document.onmousedown = MouseDown;
+      document.onmousemove = MouseMove;
+      document.onmouseup = MouseUp;
+
+      document.addEventListener("touchstart", MouseDown, false); // Version 5.4g - Added just to match touchmove
+      document.addEventListener("touchmove", MouseMove, { passive: false }); // Version 5.4g - { passive: false } Needed to prevent iphone from scrolling screen on drag
+      document.addEventListener("touchend", MouseUp, false); // Version 5.4g - Added just to match touchmove
+      function textarea2pre(el) {
+        // el is the textarea element
+
+        // If a pre has already been created for this textarea element then use it
+        if (
+          el.nextSibling &&
+          el.nextSibling.id &&
+          el.nextSibling.id.match(/pre_/i)
+        )
+          var pre = el.nextsibling;
+        else var pre = document.createElement("pre");
+
+        var the_text = el.value; // All the text in the textarea
+
+        // replace <>" with entities
+        the_text = the_text
+          .replace(/>/g, "&gt;")
+          .replace(/</g, "&lt;")
+          .replace(/"/g, "&quot;");
+        //var text_node = document.createTextNode(the_text); // create text node for pre with text in it
+        //pre.appendChild(text_node); // add text_node to pre
+        pre.innerHTML = the_text;
+
+        // Copy the complete HTML style from the textarea to the pre
+        var completeStyle = "";
+        if (typeof getComputedStyle !== "undefined") {
+          // webkit
+          completeStyle = window.getComputedStyle(el, null).cssText;
+          if (completeStyle != "")
+            // Verison 5.3f - Is empty in IE 10 and Firefox
+            pre.style.cssText = completeStyle;
+          // Everything copies fine in Chrome
+          else {
+            // Version 5.3f - Because cssText is empty in IE 10 and Firefox
+            var style = window.getComputedStyle(el, null);
+            for (var i = 0; i < style.length; i++) {
+              completeStyle +=
+                style[i] + ": " + style.getPropertyValue(style[i]) + "; ";
+            }
+            pre.style.cssText = completeStyle;
+          }
+        } else if (el.currentStyle) {
+          // IE
+          var elStyle = el.currentStyle;
+          for (var k in elStyle) {
+            completeStyle += k + ":" + elStyle[k] + ";";
+          }
+          //pre.style.cssText = completeStyle;
+          pre.style.border = "1px solid black"; // border not copying correctly in IE
+        }
+
+        el.parentNode.insertBefore(pre, el.nextSibling); // insert pre after textarea
+
+        // If textarea blur then turn pre back on and textarea off
+        el.onblur = function () {
+          this.style.display = "none";
+          pre.style.display = "block";
+        };
+        // If textarea changes then put new value back in pre
+        el.onchange = function () {
+          pre.innerHTML = el.value
+            .replace(/>/g, "&gt;")
+            .replace(/</g, "&lt;")
+            .replace(/"/g, "&quot;");
+        };
+
+        el.style.display = "none"; // hide textarea
+        pre.id = "pre_" + highlights.length; // Add id to pre
+
+        // Set onclick to turn pre off and turn textarea back on and perform a click on the textarea
+        // for a possible onclick="this.select()" for the textarea
+        pre.onclick = function () {
+          this.style.display = "none";
+          el.style.display = "block";
+          el.focus();
+          el.click();
+        };
+
+        // this.parentNode.removeChild(this); // old remove pre in onclick function above
+      } // end function textarea2pre(el)
+
+      function highlight(word, node) {
+        if (!node) node = document.body;
+
+        //var re = new RegExp(word, "i"); // regular expression of the search term // Ver 5.3c - Not using regular expressions search now
+
+        for (node = node.firstChild; node; node = node.nextSibling) {
+          //console.log(node.nodeName);
+          if (node.nodeType == 3) {
+            // text node
+            var n = node;
+            //console.log(n.nodeValue);
+            var match_pos = 0;
+            //for (match_pos; match_pos > -1; n=after)
+            {
+              //match_pos = n.nodeValue.search(re); // Ver 5.3b - Now NOT using regular expression because couldn't search for $ or ^
+              match_pos = n.nodeValue.toLowerCase().indexOf(word.toLowerCase()); // Ver 5.3b - Using toLowerCase().indexOf instead
+
+              if (match_pos > -1) {
+                // if we found a match
+                var before = n.nodeValue.substr(0, match_pos); // split into a part before the match
+                var middle = n.nodeValue.substr(match_pos, word.length); // the matched word to preserve case
+                //var after = n.splitText(match_pos+word.length);
+                var after = document.createTextNode(
+                  n.nodeValue.substr(match_pos + word.length)
+                ); // and the part after the match
+                var highlight_span = document.createElement("span"); // create a span in the middle
+                if (found_highlight_rule == 1)
+                  highlight_span.className = "highlight";
+                else highlight_span.style.backgroundColor = "yellow";
+
+                highlight_span.appendChild(document.createTextNode(middle)); // insert word as textNode in new span
+                n.nodeValue = before; // Turn node data into before
+                n.parentNode.insertBefore(after, n.nextSibling); // insert after
+                n.parentNode.insertBefore(highlight_span, n.nextSibling); // insert new span
+                highlights.push(highlight_span); // add new span to highlights array
+                highlight_span.id = "highlight_span" + highlights.length;
+                node = node.nextSibling; // Advance to next node or we get stuck in a loop because we created a span (child)
+              }
+            }
+          } // if not text node then it must be another element
+          else {
+            // nodeType 1 = element
+            if (
+              node.nodeType == 1 &&
+              node.nodeName.match(/textarea|input/i) &&
+              node.type.match(/textarea|text|number|search|email|url|tel/i) &&
+              !getStyle(node, "display").match(/none/i)
+            )
+              textarea2pre(node);
+            else {
+              if (
+                node.nodeType == 1 &&
+                !getStyle(node, "visibility").match(/hidden/i)
+              )
+                if (
+                  node.nodeType == 1 &&
+                  !getStyle(node, "display").match(/none/i)
+                )
+                  // Dont search in hidden elements
+                  // Dont search in display:none elements
+                  highlight(word, node);
+            }
+          }
+        }
+      } // end function highlight(word, node)
+
+      /* It is not possible to get certain styles set in css such as display using 
+the normal javascript.  So we have to use this function taken from:
+http://www.quirksmode.org/dom/getstyles.html */
+      function getStyle(el, styleProp) {
+        // if el is a string of the id or the actual object of the element
+        var x = document.getElementById(el) ? document.getElementById(el) : el;
+        if (x.currentStyle)
+          // IE
+          var y = x.currentStyle[styleProp];
+        else if (window.getComputedStyle)
+          // FF
+          var y = document.defaultView
+            .getComputedStyle(x, null)
+            .getPropertyValue(styleProp);
+        return y;
+      }
+    </script>
+  </body>
+</html>
